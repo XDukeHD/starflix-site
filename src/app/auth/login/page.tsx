@@ -53,7 +53,7 @@ export default function LoginPage() {
 			document.cookie = `token=${data.session.token}; expires=${expires}; path=/`;
 			document.cookie = `session_id=${data.session.cookie}; expires=${expires}; path=/`;
 
-			router.push('/home');
+			router.push('/');
 		} catch (err) {
 			setError('Erro de conexão com o servidor');
 		} finally {
