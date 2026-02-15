@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Search, User } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { clsx, type ClassValue } from 'clsx';
@@ -14,6 +15,7 @@ function cn(...inputs: ClassValue[]) {
 const Navbar = () => {
 	const [isScrolled, setIsScrolled] = useState(false);
 	const [isLoggedIn] = useState(false);
+	const pathname = usePathname();
 
 	useEffect(() => {
 		const handleScroll = () => {
@@ -46,15 +48,15 @@ const Navbar = () => {
 				</Link>
 			</div>
 
-			<div className="absolute left-1/2 -translate-x-1/2 hidden lg:flex items-center bg-white/5 backdrop-blur-2xl rounded-full p-1 border border-white/10 shadow-2xl">
-				<div className="flex items-center">
+			<div className="absolute left-1/2 -translate-x-1/2 hidden lg:flex items-center bg-white/5 backdrop-blur-2xl rounded-full p-1.5 border border-white/10 shadow-2xl">
+				<div className="flex items-center gap-1">
 					{navItems.map((item) => (
 						<Link
 							key={item.name}
 							href={item.href}
 							className={cn(
-								'px-6 py-2 rounded-full text-[11px] font-black uppercase tracking-widest transition-all duration-500',
-								item.name === 'Home'
+								'px-7 py-2.5 rounded-full text-[11px] font-black uppercase tracking-widest transition-all duration-500',
+								pathname === item.href
 									? 'bg-primary text-white shadow-[0_0_20px_rgba(99,102,241,0.4)]'
 									: 'text-white/40 hover:text-white hover:bg-white/5'
 							)}
@@ -78,9 +80,12 @@ const Navbar = () => {
 						<span className="text-xs font-bold tracking-tight text-white/90">John Silver</span>
 					</div>
 				) : (
-					<button className="bg-primary hover:bg-primary-hover text-white px-7 py-2.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/20">
+					<Link 
+						href="/auth/login"
+						className="bg-primary hover:bg-primary-hover text-white px-7 py-2.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/20"
+					>
 						Login
-					</button>
+					</Link>
 				)}
 			</div>
 		</motion.nav>
