@@ -5,7 +5,7 @@ import Link from 'next/link';
 
 const Footer = () => {
 	return (
-		<footer className="bg-black/90 border-t border-white/5 pt-20 pb-10 px-6 mt-20 relative overflow-hidden">
+		<footer className="bg-black/40 backdrop-blur-md border-t border-white/5 pt-20 pb-10 px-6 relative overflow-hidden">
 			<div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
 			
 			<div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-16 relative z-10">
@@ -22,7 +22,7 @@ const Footer = () => {
 					<h3 className="text-white font-black uppercase tracking-widest text-xs mb-6 text-primary">Navegação</h3>
 					<ul className="space-y-3">
 						<li><Link href="/" className="text-white/50 hover:text-white transition-all hover:pl-2 text-sm">Home</Link></li>
-						<li><Link href="/filmes" className="text-white/50 hover:text-white transition-all hover:pl-2 text-sm">Filmes</Link></li>
+						<li><Link href="/movies" className="text-white/50 hover:text-white transition-all hover:pl-2 text-sm">Filmes</Link></li>
 						<li><Link href="/series" className="text-white/50 hover:text-white transition-all hover:pl-2 text-sm">Séries</Link></li>
 						<li><Link href="/categorias" className="text-white/50 hover:text-white transition-all hover:pl-2 text-sm">Categorias</Link></li>
 					</ul>

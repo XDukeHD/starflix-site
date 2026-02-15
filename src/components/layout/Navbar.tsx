@@ -8,6 +8,7 @@ import { Search, User, LogOut, Heart, UserCircle, ChevronDown } from 'lucide-rea
 import { motion, AnimatePresence } from 'framer-motion';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { api } from '@/services/api';
 
 function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
@@ -26,12 +27,17 @@ const Navbar = () => {
 		};
 
 		const checkAuth = () => {
+			const cookies = document.cookie.split('; ');
+			const tokenCookie = cookies.find(row => row.startsWith('token='));
 			const userStr = localStorage.getItem('user');
 			const exp = localStorage.getItem('session_exp');
-			const token = document.cookie.split('; ').find(row => row.startsWith('token='));
 
-			if (userStr && exp && token && Date.now() < parseInt(exp) * 1000) {
-				setUserData(JSON.parse(userStr));
+			if (userStr && exp && tokenCookie && Date.now() < parseInt(exp) * 1000) {
+				try {
+					setUserData(JSON.parse(userStr));
+				} catch {
+					setUserData(null);
+				}
 			} else {
 				setUserData(null);
 			}
@@ -40,26 +46,20 @@ const Navbar = () => {
 		checkAuth();
 		window.addEventListener('scroll', handleScroll);
 		window.addEventListener('storage', checkAuth);
+		window.addEventListener('auth-change', checkAuth);
+		window.addEventListener('focus', checkAuth);
 
 		return () => {
 			window.removeEventListener('scroll', handleScroll);
 			window.removeEventListener('storage', checkAuth);
+			window.removeEventListener('auth-change', checkAuth);
+			window.removeEventListener('focus', checkAuth);
 		};
-	}, []);
+	}, [pathname]);
 
 	const handleLogout = async () => {
-		const tokenMatch = document.cookie.split('; ').find(row => row.startsWith('token='));
-		const token = tokenMatch ? tokenMatch.split('=')[1] : null;
-
 		try {
-			if (token) {
-				await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/logout`, {
-					method: 'POST',
-					headers: {
-						'Authorization': `Bearer ${token}`
-					}
-				});
-			}
+			await api.auth.logout();
 		} catch (error) {
 			console.error('Logout error:', error);
 		} finally {
@@ -68,6 +68,7 @@ const Navbar = () => {
 			localStorage.removeItem('user');
 			localStorage.removeItem('session_exp');
 			setUserData(null);
+			window.dispatchEvent(new Event('auth-change'));
 			router.push('/auth/login');
 		}
 	};
@@ -128,7 +129,7 @@ const Navbar = () => {
 						<div className="flex items-center gap-3 cursor-pointer hover:bg-white/10 px-1 py-1 pr-4 rounded-full transition-all border border-white/5 group">
 							<div className="w-8 h-8 rounded-full overflow-hidden border border-primary/30 shadow-lg group-hover:scale-105 transition-transform">
 								<img 
-									src="https://upload.wikimedia.org/wikipedia/commons/5/5f/Gravatar-default-logo.jpg" 
+									src={userData.avatar_url || "https://upload.wikimedia.org/wikipedia/commons/5/5f/Gravatar-default-logo.jpg"} 
 									alt="Avatar"
 									className="w-full h-full object-cover"
 								/>

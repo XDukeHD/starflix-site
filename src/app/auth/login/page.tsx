@@ -6,14 +6,14 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
 
+import { api } from '@/services/api';
+
 export default function LoginPage() {
 	const router = useRouter();
 	const [identifier, setIdentifier] = useState('');
 	const [password, setPassword] = useState('');
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
-
-	const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 	useEffect(() => {
 		const session = document.cookie.split('; ').find(row => row.startsWith('token='));
@@ -33,15 +33,9 @@ export default function LoginPage() {
 		const body = isEmail ? { email: identifier, password } : { username: identifier, password };
 
 		try {
-			const res = await fetch(`${API_URL}/auth/login`, {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify(body)
-			});
+			const data = await api.auth.login(body);
 
-			const data = await res.json();
-
-			if (!res.ok) {
+			if (data.status === 'error') {
 				setError(data.error || 'Erro ao fazer login');
 				return;
 			}
@@ -52,6 +46,9 @@ export default function LoginPage() {
 			const expires = new Date(data.session.exp * 1000).toUTCString();
 			document.cookie = `token=${data.session.token}; expires=${expires}; path=/`;
 			document.cookie = `session_id=${data.session.cookie}; expires=${expires}; path=/`;
+
+			// Notificar componentes sobre a mudança na autenticação
+			window.dispatchEvent(new Event('auth-change'));
 
 			router.push('/');
 		} catch (err) {

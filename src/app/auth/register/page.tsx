@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Mail, Lock, User, ArrowRight, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
+import { api } from '@/services/api';
 
 export default function RegisterPage() {
 	const router = useRouter();
@@ -18,8 +19,6 @@ export default function RegisterPage() {
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState<string | string[] | null>(null);
 	const [success, setSuccess] = useState(false);
-
-	const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 	useEffect(() => {
 		const session = document.cookie.split('; ').find(row => row.startsWith('token='));
@@ -39,8 +38,7 @@ export default function RegisterPage() {
 
 			setUsernameStatus('checking');
 			try {
-				const res = await fetch(`${API_URL}/auth/check-username?username=${formData.username}`);
-				const data = await res.json();
+				const data = await api.auth.checkUsername(formData.username);
 				setUsernameStatus(data.available ? 'available' : 'unavailable');
 			} catch (err) {
 				setUsernameStatus('idle');
@@ -49,7 +47,7 @@ export default function RegisterPage() {
 
 		const timeoutId = setTimeout(checkUsername, 500);
 		return () => clearTimeout(timeoutId);
-	}, [formData.username, API_URL]);
+	}, [formData.username]);
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -57,15 +55,9 @@ export default function RegisterPage() {
 		setError(null);
 
 		try {
-			const res = await fetch(`${API_URL}/auth/register`, {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify(formData)
-			});
+			const data = await api.auth.register(formData);
 
-			const data = await res.json();
-
-			if (!res.ok) {
+			if (data.error || data.errors) {
 				setError(data.errors || data.error || 'Erro ao registrar');
 				return;
 			}

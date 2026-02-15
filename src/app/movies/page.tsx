@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Star, Lock, ArrowRight, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { api } from '@/services/api';
 
 interface Movie {
 	uuid: string;
@@ -38,7 +39,7 @@ export default function MoviesPage() {
 			
 			if (tokenMatch && exp && Date.now() < parseInt(exp) * 1000) {
 				setIsAuthorized(true);
-				fetchMovies(1, tokenMatch.split('=')[1]);
+				fetchMovies(1);
 			} else {
 				setIsAuthorized(false);
 				setIsLoading(false);
@@ -48,15 +49,10 @@ export default function MoviesPage() {
 		checkAuth();
 	}, []);
 
-	const fetchMovies = async (page: number, token: string) => {
+	const fetchMovies = async (page: number) => {
 		setIsLoading(true);
 		try {
-			const res = await fetch(`${API_URL}/movies?page=${page}`, {
-				headers: {
-					'Authorization': `Bearer ${token}`
-				}
-			});
-			const data = await res.json();
+			const data = await api.movies.list(page);
 			setMovies(data.data);
 			setPagination(data.meta.pagination);
 			setCurrentPage(data.meta.pagination.current_page);
@@ -68,11 +64,8 @@ export default function MoviesPage() {
 	};
 
 	const handlePageChange = (newPage: number) => {
-		const tokenMatch = document.cookie.split('; ').find(row => row.startsWith('token='));
-		if (tokenMatch) {
-			fetchMovies(newPage, tokenMatch.split('=')[1]);
-			window.scrollTo({ top: 0, behavior: 'smooth' });
-		}
+		fetchMovies(newPage);
+		window.scrollTo({ top: 0, behavior: 'smooth' });
 	};
 
 	if (isAuthorized === false) {
@@ -169,9 +162,12 @@ export default function MoviesPage() {
 													));
 												})()}
 											</div>
-											<button className="w-full bg-white text-black py-3 rounded-xl font-black uppercase italic text-xs flex items-center justify-center gap-2 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
+											<Link 
+												href={`/content/${movie.uuid}`}
+												className="w-full bg-white text-black py-3 rounded-xl font-black uppercase italic text-xs flex items-center justify-center gap-2 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500"
+											>
 												<Play size={14} fill="black" /> Detalhes
-											</button>
+											</Link>
 										</div>
 										<div className="absolute top-4 right-4 bg-black/60 backdrop-blur-xl border border-white/10 px-3 py-1.5 rounded-xl flex items-center gap-1.5">
 											<span className="text-primary font-black text-xs uppercase italic tracking-tighter">VIP</span>
