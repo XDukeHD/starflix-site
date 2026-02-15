@@ -1,11 +1,66 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { Mail, Lock, ArrowRight } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
 
 export default function LoginPage() {
+	const router = useRouter();
+	const [identifier, setIdentifier] = useState('');
+	const [password, setPassword] = useState('');
+	const [isLoading, setIsLoading] = useState(false);
+	const [error, setError] = useState<string | null>(null);
+
+	const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+	useEffect(() => {
+		const session = document.cookie.split('; ').find(row => row.startsWith('token='));
+		const exp = localStorage.getItem('session_exp');
+		
+		if (session && exp && Date.now() < parseInt(exp) * 1000) {
+			router.push('/');
+		}
+	}, [router]);
+
+	const handleSubmit = async (e: React.FormEvent) => {
+		e.preventDefault();
+		setIsLoading(true);
+		setError(null);
+
+		const isEmail = identifier.includes('@');
+		const body = isEmail ? { email: identifier, password } : { username: identifier, password };
+
+		try {
+			const res = await fetch(`${API_URL}/auth/login`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(body)
+			});
+
+			const data = await res.json();
+
+			if (!res.ok) {
+				setError(data.error || 'Erro ao fazer login');
+				return;
+			}
+
+			localStorage.setItem('user', JSON.stringify(data.user));
+			localStorage.setItem('session_exp', data.session.exp.toString());
+			
+			const expires = new Date(data.session.exp * 1000).toUTCString();
+			document.cookie = `token=${data.session.token}; expires=${expires}; path=/`;
+			document.cookie = `session_id=${data.session.cookie}; expires=${expires}; path=/`;
+
+			router.push('/home');
+		} catch (err) {
+			setError('Erro de conexão com o servidor');
+		} finally {
+			setIsLoading(false);
+		}
+	};
+
 	return (
 		<div className="min-h-screen flex items-center justify-center px-6 py-20 relative overflow-hidden">
 			<motion.div 
@@ -23,14 +78,23 @@ export default function LoginPage() {
 							<p className="text-white/50 font-medium">Bem-vindo de volta ao universo StarFlix</p>
 						</div>
 
-						<form className="space-y-6">
+						{error && (
+							<div className="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-xl text-sm font-medium mb-6">
+								{error}
+							</div>
+						)}
+
+						<form onSubmit={handleSubmit} className="space-y-6">
 							<div className="space-y-2">
-								<label className="text-sm font-bold text-white/70 ml-1 uppercase tracking-widest">E-mail</label>
+								<label className="text-sm font-bold text-white/70 ml-1 uppercase tracking-widest">Usuário ou E-mail</label>
 								<div className="relative group">
 									<Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 group-focus-within:text-primary transition-colors" size={20} />
 									<input 
-										type="email" 
-										placeholder="seu@email.com"
+										type="text" 
+										required
+										value={identifier}
+										onChange={(e) => setIdentifier(e.target.value)}
+										placeholder="username ou e-mail"
 										className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white placeholder:text-white/20 focus:outline-none focus:border-primary/50 focus:bg-primary/5 transition-all outline-none"
 									/>
 								</div>
@@ -45,15 +109,27 @@ export default function LoginPage() {
 									<Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 group-focus-within:text-primary transition-colors" size={20} />
 									<input 
 										type="password" 
+										required
+										value={password}
+										onChange={(e) => setPassword(e.target.value)}
 										placeholder="••••••••"
 										className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white placeholder:text-white/20 focus:outline-none focus:border-primary/50 focus:bg-primary/5 transition-all outline-none"
 									/>
 								</div>
 							</div>
 
-							<button className="w-full bg-primary hover:bg-white text-white hover:text-primary font-black py-4 rounded-2xl transition-all duration-300 transform active:scale-95 shadow-lg shadow-primary/20 flex items-center justify-center gap-2 group/btn uppercase italic tracking-tighter text-lg">
-								Entrar 
-								<ArrowRight size={20} className="group-hover/btn:translate-x-1 transition-transform" />
+							<button 
+								disabled={isLoading}
+								className="w-full bg-primary hover:bg-white text-white hover:text-primary font-black py-4 rounded-2xl transition-all duration-300 transform active:scale-95 shadow-lg shadow-primary/20 flex items-center justify-center gap-2 group/btn uppercase italic tracking-tighter text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+							>
+								{isLoading ? (
+									<Loader2 className="animate-spin" size={24} />
+								) : (
+									<>
+										Entrar 
+										<ArrowRight size={20} className="group-hover/btn:translate-x-1 transition-transform" />
+									</>
+								)}
 							</button>
 						</form>
 
@@ -71,3 +147,4 @@ export default function LoginPage() {
 		</div>
 	);
 }
+

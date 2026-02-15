@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Search, User } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { usePathname, useRouter } from 'next/navigation';
+import { Search, User, LogOut, Heart, UserCircle, ChevronDown } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -14,16 +15,62 @@ function cn(...inputs: ClassValue[]) {
 
 const Navbar = () => {
 	const [isScrolled, setIsScrolled] = useState(false);
-	const [isLoggedIn] = useState(false);
+	const [userData, setUserData] = useState<any>(null);
+	const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 	const pathname = usePathname();
+	const router = useRouter();
 
 	useEffect(() => {
 		const handleScroll = () => {
 			setIsScrolled(window.scrollY > 50);
 		};
+
+		const checkAuth = () => {
+			const userStr = localStorage.getItem('user');
+			const exp = localStorage.getItem('session_exp');
+			const token = document.cookie.split('; ').find(row => row.startsWith('token='));
+
+			if (userStr && exp && token && Date.now() < parseInt(exp) * 1000) {
+				setUserData(JSON.parse(userStr));
+			} else {
+				setUserData(null);
+			}
+		};
+
+		checkAuth();
 		window.addEventListener('scroll', handleScroll);
-		return () => window.removeEventListener('scroll', handleScroll);
+		window.addEventListener('storage', checkAuth);
+
+		return () => {
+			window.removeEventListener('scroll', handleScroll);
+			window.removeEventListener('storage', checkAuth);
+		};
 	}, []);
+
+	const handleLogout = async () => {
+		const tokenMatch = document.cookie.split('; ').find(row => row.startsWith('token='));
+		const token = tokenMatch ? tokenMatch.split('=')[1] : null;
+
+		try {
+			if (token) {
+				await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/logout`, {
+					method: 'POST',
+					headers: {
+						'Authorization': `Bearer ${token}`
+					}
+				});
+			}
+		} catch (error) {
+			console.error('Logout error:', error);
+		} finally {
+			document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+			document.cookie = "session_id=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+			localStorage.removeItem('user');
+			localStorage.removeItem('session_exp');
+			setUserData(null);
+			router.push('/auth/login');
+		}
+	};
 
 	const navItems = [
 		{ name: 'Home', href: '/' },
@@ -72,17 +119,65 @@ const Navbar = () => {
 					<Search size={18} strokeWidth={2.5} />
 				</button>
 				
-				{isLoggedIn ? (
-					<div className="flex items-center gap-3 cursor-pointer hover:bg-white/10 px-1 py-1 pr-4 rounded-full transition-all border border-white/5 group">
-						<div className="w-8 h-8 rounded-full bg-gradient-to-tr from-primary to-accent flex items-center justify-center text-[10px] font-black shadow-lg group-hover:scale-105 transition-transform text-white">
-							JS
+				{userData ? (
+					<div 
+						className="relative"
+						onMouseEnter={() => setIsDropdownOpen(true)}
+						onMouseLeave={() => setIsDropdownOpen(false)}
+					>
+						<div className="flex items-center gap-3 cursor-pointer hover:bg-white/10 px-1 py-1 pr-4 rounded-full transition-all border border-white/5 group">
+							<div className="w-8 h-8 rounded-full overflow-hidden border border-primary/30 shadow-lg group-hover:scale-105 transition-transform">
+								<img 
+									src="https://upload.wikimedia.org/wikipedia/commons/5/5f/Gravatar-default-logo.jpg" 
+									alt="Avatar"
+									className="w-full h-full object-cover"
+								/>
+							</div>
+							<div className="flex items-center gap-1.5">
+								<span className="text-xs font-bold tracking-tight text-white/90">{userData.username}</span>
+								<ChevronDown size={14} className={cn("text-white/30 transition-transform duration-300", isDropdownOpen && "rotate-180")} />
+							</div>
 						</div>
-						<span className="text-xs font-bold tracking-tight text-white/90">John Silver</span>
+
+						<AnimatePresence>
+							{isDropdownOpen && (
+								<motion.div
+									initial={{ opacity: 0, y: 10, scale: 0.95 }}
+									animate={{ opacity: 1, y: 0, scale: 1 }}
+									exit={{ opacity: 0, y: 10, scale: 0.95 }}
+									transition={{ duration: 0.2 }}
+									className="absolute right-0 mt-2 w-48 bg-[#0a0a14]/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl py-2 overflow-hidden"
+								>
+									<Link 
+										href="/perfil" 
+										className="flex items-center gap-3 px-5 py-3 text-[11px] font-bold text-white/70 hover:text-white hover:bg-white/5 transition-colors uppercase tracking-widest"
+									>
+										<UserCircle size={16} className="text-primary" />
+										Perfil
+									</Link>
+									<Link 
+										href="/watchlist" 
+										className="flex items-center gap-3 px-5 py-3 text-[11px] font-bold text-white/70 hover:text-white hover:bg-white/5 transition-colors uppercase tracking-widest"
+									>
+										<Heart size={16} className="text-primary" />
+										Watchlist
+									</Link>
+									<div className="h-px bg-white/5 my-1 mx-2" />
+									<button 
+										onClick={handleLogout}
+										className="w-full flex items-center gap-3 px-5 py-3 text-[11px] font-bold text-red-400 hover:text-red-300 hover:bg-red-500/5 transition-colors uppercase tracking-widest"
+									>
+										<LogOut size={16} />
+										Sair
+									</button>
+								</motion.div>
+							)}
+						</AnimatePresence>
 					</div>
 				) : (
 					<Link 
 						href="/auth/login"
-						className="bg-primary hover:bg-primary-hover text-white px-7 py-2.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/20"
+						className="bg-primary hover:bg-white text-white hover:text-primary px-7 py-2.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/20 italic"
 					>
 						Login
 					</Link>

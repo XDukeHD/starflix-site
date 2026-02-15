@@ -1,11 +1,23 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Mail, ArrowLeft, Send } from 'lucide-react';
 
 export default function ForgotPasswordPage() {
+	const router = useRouter();
+
+	useEffect(() => {
+		const session = document.cookie.split('; ').find(row => row.startsWith('token='));
+		const exp = localStorage.getItem('session_exp');
+		
+		if (session && exp && Date.now() < parseInt(exp) * 1000) {
+			router.push('/home');
+		}
+	}, [router]);
+
 	return (
 		<div className="min-h-screen flex items-center justify-center px-6 py-20 relative overflow-hidden">
 			<motion.div 
