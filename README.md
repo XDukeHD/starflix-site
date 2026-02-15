@@ -7,7 +7,7 @@ Dito tudo isso, esse site é totalmente código aberto, e está aberto para cont
 Para usar o projeto, basta clonar o repositório e instalar as dependências, para isso, basta rodar os seguintes comandos:
 
 ```bash
-git clone https://github.com/xduke/starflix-site.git
+git clone https://github.com/XDukeHD/starflix-site.git
 cd starflix-site
 bun install # ou npm install ou yarn install
 ```
