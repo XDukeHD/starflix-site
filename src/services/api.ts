@@ -45,6 +45,15 @@ export const api = {
             return res.json();
         }
     },
+    series: {
+        list: async (page: number = 1) => {
+            const token = getAuthToken();
+            const res = await fetch(`${API_URL}/tvshows?page=${page}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            return res.json();
+        }
+    },
     content: {
         getDetails: async (id: string) => {
             const token = getAuthToken();
