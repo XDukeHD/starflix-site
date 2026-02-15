@@ -75,7 +75,6 @@ const Navbar = () => {
 
 	const navItems = [
 		{ name: 'Home', href: '/' },
-		{ name: 'Watchlist', href: '/watchlist' },
 		{ name: 'Filmes', href: '/movies' },
 		{ name: 'Séries', href: '/series' },
 		{ name: 'Categorias', href: '/categorias' },
