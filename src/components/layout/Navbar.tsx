@@ -21,8 +21,6 @@ const Navbar = () => {
 	const pathname = usePathname();
 	const router = useRouter();
 
-	if (pathname?.startsWith('/watch/')) return null;
-
 	useEffect(() => {
 		const handleScroll = () => {
 			setIsScrolled(window.scrollY > 50);
@@ -81,6 +79,8 @@ const Navbar = () => {
 		{ name: 'Séries', href: '/series' },
 		{ name: 'Categorias', href: '/categorias' },
 	];
+
+	if (pathname?.startsWith('/watch/')) return null;
 
 	return (
 		<motion.nav

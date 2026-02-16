@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Star, Calendar, Clock, Info, ChevronRight, ChevronDown, List, Film, Monitor, AlertCircle, Link } from 'lucide-react';
+import { Play, Star, Calendar, Clock, Info, ChevronRight, ChevronDown, List, Film, Monitor, AlertCircle } from 'lucide-react';
 import { api } from '@/services/api';
 
 interface StreamOption {

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
@@ -201,6 +202,14 @@ export default function WatchPage() {
     };
 
     useEffect(() => {
+        const handleFullscreenChange = () => {
+            setIsFullscreen(!!document.fullscreenElement);
+        };
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    }, []);
+
+    useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             switch(e.code) {
                 case 'Space': e.preventDefault(); togglePlay(); break;
@@ -228,7 +237,7 @@ export default function WatchPage() {
     return (
         <div 
             ref={containerRef}
-            className={`h-screen bg-black flex flex-col md:flex-row overflow-hidden ${isFullscreen ? 'cursor-none' : ''}`}
+            className={`h-screen bg-black flex flex-col md:flex-row overflow-hidden ${isFullscreen && !showControls ? 'cursor-none' : ''}`}
             onMouseMove={handleMouseMove}
         >
             <div className={`relative flex-grow flex items-center justify-center group h-full ${isSeries && !isFullscreen ? 'md:w-3/4' : 'w-full'} bg-black`}>
