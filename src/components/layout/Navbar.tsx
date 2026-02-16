@@ -21,6 +21,8 @@ const Navbar = () => {
 	const pathname = usePathname();
 	const router = useRouter();
 
+	if (pathname?.startsWith('/watch/')) return null;
+
 	useEffect(() => {
 		const handleScroll = () => {
 			setIsScrolled(window.scrollY > 50);

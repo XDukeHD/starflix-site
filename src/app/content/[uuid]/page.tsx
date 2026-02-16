@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Star, Calendar, Clock, Info, ChevronRight, ChevronDown, List, Film, Monitor, AlertCircle } from 'lucide-react';
+import { Play, Star, Calendar, Clock, Info, ChevronRight, ChevronDown, List, Film, Monitor, AlertCircle, Link } from 'lucide-react';
 import { api } from '@/services/api';
 
 interface StreamOption {
@@ -155,9 +155,12 @@ export default function ContentPage() {
 							<div className="flex flex-col sm:flex-row items-center gap-4">
 								{content.content === 'Movie' ? (
 									hasStream ? (
-										<button className="w-full sm:w-auto bg-white text-black px-10 py-5 rounded-2xl font-black uppercase italic tracking-widest flex items-center justify-center gap-3 hover:scale-105 active:scale-95 transition-all shadow-xl">
+										<Link 
+											href={`/watch/${content.stream_options?.[0]?.uuid}`}
+											className="w-full sm:w-auto bg-white text-black px-10 py-5 rounded-2xl font-black uppercase italic tracking-widest flex items-center justify-center gap-3 hover:scale-105 active:scale-95 transition-all shadow-xl"
+										>
 											<Play size={24} fill="black" /> Assistir Agora
-										</button>
+										</Link>
 									) : (
 										<div className="w-full sm:w-auto bg-red-500/10 border border-red-500/20 text-red-500 px-8 py-5 rounded-2xl font-black uppercase italic tracking-widest flex items-center justify-center gap-3">
 											<AlertCircle size={20} /> Esse conteúdo não está disponível no momento.
@@ -239,7 +242,9 @@ export default function ContentPage() {
 											/>
 											<div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
 												{episode.stream_options && episode.stream_options.length > 0 ? (
-													<Play size={32} fill="white" />
+													<Link href={`/watch/${episode.stream_options[0].uuid}`}>
+														<Play size={32} fill="white" className="hover:scale-110 transition-transform" />
+													</Link>
 												) : (
 													<AlertCircle size={32} className="text-red-500" />
 												)}

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 const getAuthToken = () => {
@@ -62,6 +61,18 @@ export const api = {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             return res.json();
+        }
+    },
+    stream: {
+        getDetails: async (uuid: string) => {
+            const token = getAuthToken();
+            const res = await fetch(`${API_URL}/stream/${uuid}/details`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            return res.json();
+        },
+        getPlaylistUrl: (uuid: string) => {
+            return `${API_URL}/stream/${uuid}`;
         }
     }
 };
