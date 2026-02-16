@@ -238,7 +238,7 @@ export default function ContentPage() {
 												className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
 											/>
 											<div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-												{episode.stream_options.length > 0 ? (
+												{episode.stream_options && episode.stream_options.length > 0 ? (
 													<Play size={32} fill="white" />
 												) : (
 													<AlertCircle size={32} className="text-red-500" />
@@ -250,7 +250,7 @@ export default function ContentPage() {
 												<h3 className="text-xl font-black italic uppercase tracking-tighter text-white group-hover:text-primary transition-colors line-clamp-1">
 													{episode.episode_number}. {episode.title}
 												</h3>
-												{episode.stream_options.length === 0 && (
+												{(!episode.stream_options || episode.stream_options.length === 0) && (
 													<span className="text-[8px] font-black uppercase text-red-500 border border-red-500/20 px-1.5 py-0.5 rounded">Indisponível</span>
 												)}
 											</div>
