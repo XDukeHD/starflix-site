@@ -6,10 +6,22 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Hls from 'hls.js';
 import { 
   Play, Pause, RotateCcw, RotateCw, Maximize, Minimize, Volume2, VolumeX, 
-  Settings, ChevronLeft, List, Loader2, Subtitles, SkipForward
+  Settings, ChevronLeft, List, Loader2, Subtitles, SkipForward, Languages
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '@/services/api';
+
+const getLangName = (code: string) => {
+    const names: Record<string, string> = {
+        'pt-br': 'Português (Brasil)',
+        'en-us': 'English (United States)',
+        'en-uk': 'English (UK)',
+        'en-gb': 'English (UK)',
+        'es-es': 'Español (España)',
+        'fr-fr': 'Français (France)',
+    };
+    return names[code.toLowerCase()] || code.toUpperCase();
+};
 
 export default function WatchPage() {
     const params = useParams();
@@ -28,6 +40,7 @@ export default function WatchPage() {
     const [quality, setQuality] = useState('Auto');
     const [showQualityMenu, setShowQualityMenu] = useState(false);
     const [showEpisodesMenu, setShowEpisodesMenu] = useState(false);
+    const [showAudioMenu, setShowAudioMenu] = useState(false);
     const [selectedSeasonIdx, setSelectedSeasonIdx] = useState(0);
     const [isSeries, setIsSeries] = useState(false);
     const [availableResolutions, setAvailableResolutions] = useState<any[]>([]);
@@ -223,18 +236,14 @@ export default function WatchPage() {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [isPlaying, isMuted]);
 
-    if (isLoading) {
-        return (
-            <div className="min-h-screen bg-black flex items-center justify-center">
-                <div className="flex flex-col items-center gap-4">
-                    <Loader2 className="w-12 h-12 text-primary animate-spin" />
-                    <p className="text-white/50 font-black uppercase tracking-tighter italic">Carregando Estrelas...</p>
-                </div>
+    return isLoading ? (
+        <div className="min-h-screen bg-black flex items-center justify-center">
+            <div className="flex flex-col items-center gap-4">
+                <Loader2 className="w-12 h-12 text-primary animate-spin" />
+                <p className="text-white/50 font-black uppercase tracking-tighter italic">Carregando Estrelas...</p>
             </div>
-        );
-    }
-
-    return (
+        </div>
+    ) : (
         <div 
             ref={containerRef}
             className={`h-screen bg-black flex flex-col md:flex-row overflow-hidden ${isFullscreen && !showControls ? 'cursor-none' : ''}`}
@@ -322,7 +331,51 @@ export default function WatchPage() {
 
                                     <div className="flex items-center gap-6">
                                         <div className="relative">
-                                            <button onClick={() => setShowQualityMenu(!showQualityMenu)} className="flex items-center gap-2 text-white/60 hover:text-white transition-colors font-black uppercase italic text-xs tracking-widest">
+                                            <button 
+                                                onClick={() => {
+                                                    setShowAudioMenu(!showAudioMenu);
+                                                    setShowQualityMenu(false);
+                                                }} 
+                                                className="flex items-center gap-2 text-white/60 hover:text-white transition-colors font-black uppercase italic text-xs tracking-widest"
+                                            >
+                                                <Languages size={20} /> {getLangName(streamDetails?.language || '')}
+                                            </button>
+                                            <AnimatePresence>
+                                                {showAudioMenu && (
+                                                    <motion.div 
+                                                        initial={{ opacity: 0, y: -10 }}
+                                                        animate={{ opacity: 1, y: 0 }}
+                                                        exit={{ opacity: 0, y: -10 }}
+                                                        className="absolute bottom-full right-0 mb-4 bg-black/98 backdrop-blur-3xl border border-white/10 rounded-2xl p-2 w-48 overflow-hidden shadow-2xl"
+                                                    >
+                                                        {Array.from(new Set(availableResolutions.map(r => r.language))).map((lang: string) => (
+                                                            <button 
+                                                                key={lang}
+                                                                onClick={() => {
+                                                                    setShowAudioMenu(false);
+                                                                    const opt = availableResolutions.find(r => r.language === lang && r.resolution === (quality === 'Auto' ? '1080p' : quality)) || availableResolutions.find(r => r.language === lang);
+                                                                    if (opt && opt.uuid !== streamDetails.uuid) {
+                                                                        router.push(`/watch/${opt.uuid}`);
+                                                                    }
+                                                                }}
+                                                                className={`w-full px-4 py-3 text-left text-[10px] font-black uppercase italic tracking-widest hover:bg-white/10 rounded-xl transition-colors ${streamDetails?.language === lang ? 'text-primary' : 'text-white/40'}`}
+                                                            >
+                                                                {getLangName(lang)}
+                                                            </button>
+                                                        ))}
+                                                    </motion.div>
+                                                )}
+                                            </AnimatePresence>
+                                        </div>
+
+                                        <div className="relative">
+                                            <button 
+                                                onClick={() => {
+                                                    setShowQualityMenu(!showQualityMenu);
+                                                    setShowAudioMenu(false);
+                                                }} 
+                                                className="flex items-center gap-2 text-white/60 hover:text-white transition-colors font-black uppercase italic text-xs tracking-widest"
+                                            >
                                                 <Settings size={20} /> {quality}
                                             </button>
                                             <AnimatePresence>
@@ -331,9 +384,11 @@ export default function WatchPage() {
                                                         initial={{ opacity: 0, y: -10 }}
                                                         animate={{ opacity: 1, y: 0 }}
                                                         exit={{ opacity: 0, y: -10 }}
-                                                        className="absolute bottom-full right-0 mb-4 bg-black/90 backdrop-blur-2xl border border-white/10 rounded-2xl p-2 w-32 overflow-hidden shadow-2xl"
+                                                        className="absolute bottom-full right-0 mb-4 bg-black/98 backdrop-blur-3xl border border-white/10 rounded-2xl p-2 w-32 overflow-hidden shadow-2xl"
                                                     >
-                                                        {availableResolutions.map((res: any) => (
+                                                        {availableResolutions
+                                                            .filter(res => res.language === streamDetails?.language)
+                                                            .map((res: any) => (
                                                             <button 
                                                                 key={res.uuid}
                                                                 onClick={() => { 
@@ -342,16 +397,11 @@ export default function WatchPage() {
                                                                         router.push(`/watch/${res.uuid}`);
                                                                     }
                                                                 }}
-                                                                className={`w-full px-4 py-2 text-left text-[10px] font-black uppercase italic tracking-widest hover:bg-white/10 rounded-xl transition-colors ${streamDetails.uuid === res.uuid ? 'text-primary' : 'text-white/40'}`}
+                                                                className={`w-full px-4 py-3 text-left text-[10px] font-black uppercase italic tracking-widest hover:bg-white/10 rounded-xl transition-colors ${streamDetails.uuid === res.uuid ? 'text-primary' : 'text-white/40'}`}
                                                             >
                                                                 {res.resolution}
                                                             </button>
                                                         ))}
-                                                        {availableResolutions.length === 0 && (
-                                                            <button className="w-full px-4 py-2 text-left text-[10px] font-black uppercase italic tracking-widest text-white/20 cursor-default">
-                                                                {quality}
-                                                            </button>
-                                                        )}
                                                     </motion.div>
                                                 )}
                                             </AnimatePresence>
@@ -394,9 +444,8 @@ export default function WatchPage() {
 
                     <div className="flex-grow overflow-y-auto p-4 space-y-3 custom-scrollbar">
                         {contentDetails.seasons[selectedSeasonIdx]?.episodes.map((ep: any) => {
-                            const isCurrentEpisode = streamDetails.content_type === 'episode' && 
-                                streamDetails.content_season === contentDetails.seasons[selectedSeasonIdx].season_number && 
-                                streamDetails.content_episode === ep.episode_number;
+                            const isCurrentEpisode = streamDetails?.content_type === 'episode' && 
+                                streamDetails?.content_uuid === ep.uuid;
 
                             return (
                                 <button

@@ -7,9 +7,7 @@ import { usePathname } from 'next/navigation';
 const Footer = () => {
 	const pathname = usePathname();
 	
-	if (pathname?.startsWith('/watch/')) return null;
-
-	return (
+	return pathname?.startsWith('/watch/') ? null : (
 		<footer className="bg-black/40 backdrop-blur-md border-t border-white/5 pt-20 pb-10 px-6 relative overflow-hidden">
 			<div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
 			

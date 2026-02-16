@@ -80,9 +80,7 @@ const Navbar = () => {
 		{ name: 'Categorias', href: '/categorias' },
 	];
 
-	if (pathname?.startsWith('/watch/')) return null;
-
-	return (
+	return pathname?.startsWith('/watch/') ? null : (
 		<motion.nav
 			initial={{ y: -100 }}
 			animate={{ y: 0 }}
