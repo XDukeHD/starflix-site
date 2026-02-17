@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Star, Calendar, Clock, Info, ChevronRight, ChevronDown, List, Film, Monitor, AlertCircle } from 'lucide-react';
+import { Play, Star, Calendar, Clock, Info, ChevronRight, ChevronDown, List, Film, Monitor, AlertCircle, Heart, Loader2 } from 'lucide-react';
 import { api } from '@/services/api';
 
 interface StreamOption {
@@ -46,6 +46,7 @@ interface Content {
 	genres: string;
 	runtime?: number;
 	certificate: string;
+	popularity: number;
 	stream_options?: StreamOption[];
 	seasons?: Season[];
 }
@@ -57,6 +58,8 @@ export default function ContentPage() {
 	const [isLoading, setIsLoading] = useState(true);
 	const [selectedSeason, setSelectedSeason] = useState<number>(0);
 	const [isSeasonOpen, setIsSeasonOpen] = useState(false);
+	const [inWatchlist, setInWatchlist] = useState(false);
+	const [isWatchlistLoading, setIsWatchlistLoading] = useState(false);
 
 	useEffect(() => {
 		const fetchContent = async () => {
@@ -68,6 +71,11 @@ export default function ContentPage() {
 					return;
 				}
 				setContent(data);
+				
+				const watchlist = await api.watchlist.check(params.uuid as string);
+				if (watchlist.success) {
+					setInWatchlist(watchlist.in_watchlist);
+				}
 			} catch (error) {
 				console.error(error);
 			} finally {
@@ -77,6 +85,22 @@ export default function ContentPage() {
 
 		fetchContent();
 	}, [params.uuid, router]);
+
+	const handleToggleWatchlist = async () => {
+		if (!content) return;
+		
+		setIsWatchlistLoading(true);
+		try {
+			const data = await api.watchlist.toggle(content.uuid);
+			if (data.success) {
+				setInWatchlist(!inWatchlist);
+			}
+		} catch (error) {
+			console.error('Error toggling watchlist:', error);
+		} finally {
+			setIsWatchlistLoading(false);
+		}
+	};
 
 	if (isLoading) {
 		return (
@@ -125,7 +149,10 @@ export default function ContentPage() {
 									{content.content === 'Movie' ? 'Filme' : 'Série'}
 								</span>
 								<span className="text-white/40 font-bold text-xs uppercase tracking-widest flex items-center gap-2">
-									<Star size={14} className="text-primary fill-primary" /> {content.certificate}
+									<Star size={14} className="text-primary fill-primary" /> {content.popularity}
+								</span>
+								<span className="text-white/40 font-bold text-xs uppercase tracking-widest flex items-center gap-2">
+									<Info size={14} /> {content.certificate}
 								</span>
 								{content.runtime && (
 									<span className="text-white/40 font-bold text-xs uppercase tracking-widest flex items-center gap-2">
@@ -175,6 +202,24 @@ export default function ContentPage() {
 										<List size={20} /> Ver Episódios
 									</button>
 								)}
+								
+								<button 
+									onClick={handleToggleWatchlist}
+									disabled={isWatchlistLoading}
+									className={`w-full sm:w-auto px-10 py-5 rounded-2xl font-black uppercase italic tracking-widest flex items-center justify-center gap-3 transition-all border ${
+										inWatchlist 
+										? 'bg-primary border-primary text-white shadow-lg shadow-primary/20' 
+										: 'bg-white/5 backdrop-blur-md border-white/10 text-white hover:bg-white/10'
+									}`}
+								>
+									{isWatchlistLoading ? (
+										<Loader2 size={20} className="animate-spin" />
+									) : (
+										<Heart size={20} className={inWatchlist ? 'fill-white' : ''} />
+									)}
+									{inWatchlist ? 'Na Sua Lista' : 'Minha Lista'}
+								</button>
+
 								<button className="w-full sm:w-auto bg-white/5 backdrop-blur-md border border-white/10 text-white px-10 py-5 rounded-2xl font-black uppercase italic tracking-widest flex items-center justify-center gap-3 hover:bg-white/10 transition-all">
 									Ver Trailer
 								</button>

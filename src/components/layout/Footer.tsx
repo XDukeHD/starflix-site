@@ -27,7 +27,7 @@ const Footer = () => {
 						<li><Link href="/" className="text-white/50 hover:text-white transition-all hover:pl-2 text-sm">Home</Link></li>
 						<li><Link href="/movies" className="text-white/50 hover:text-white transition-all hover:pl-2 text-sm">Filmes</Link></li>
 						<li><Link href="/series" className="text-white/50 hover:text-white transition-all hover:pl-2 text-sm">Séries</Link></li>
-						<li><Link href="/categorias" className="text-white/50 hover:text-white transition-all hover:pl-2 text-sm">Categorias</Link></li>
+						<li><Link href="/genres" className="text-white/50 hover:text-white transition-all hover:pl-2 text-sm">Gêneros</Link></li>
 					</ul>
 				</div>
 

@@ -18,8 +18,17 @@ const Navbar = () => {
 	const [isScrolled, setIsScrolled] = useState(false);
 	const [userData, setUserData] = useState<any>(null);
 	const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+	const [isSearchOpen, setIsSearchOpen] = useState(false);
+	const [searchQuery, setSearchQuery] = useState('');
 	const pathname = usePathname();
 	const router = useRouter();
+
+	useEffect(() => {
+		if (isSearchOpen) {
+			const input = document.getElementById('search-input');
+			input?.focus();
+		}
+	}, [isSearchOpen]);
 
 	useEffect(() => {
 		const handleScroll = () => {
@@ -77,7 +86,7 @@ const Navbar = () => {
 		{ name: 'Home', href: '/' },
 		{ name: 'Filmes', href: '/movies' },
 		{ name: 'Séries', href: '/series' },
-		{ name: 'Categorias', href: '/categorias' },
+		{ name: 'Gêneros', href: '/genres' },
 	];
 
 	return pathname?.startsWith('/watch/') ? null : (
@@ -115,9 +124,41 @@ const Navbar = () => {
 			</div>
 
 			<div className="flex items-center gap-6 z-10">
-				<button className="text-white/70 hover:text-white transition-colors">
-					<Search size={18} strokeWidth={2.5} />
-				</button>
+				<div className="relative flex items-center">
+					<AnimatePresence>
+						{isSearchOpen && (
+							<motion.form
+								initial={{ width: 0, opacity: 0 }}
+								animate={{ width: 240, opacity: 1 }}
+								exit={{ width: 0, opacity: 0 }}
+								onSubmit={(e) => {
+									e.preventDefault();
+									if (searchQuery.trim()) {
+										router.push(`/search?q=${encodeURIComponent(searchQuery)}`);
+										setIsSearchOpen(false);
+										setSearchQuery('');
+									}
+								}}
+								className="overflow-hidden mr-2"
+							>
+								<input
+									id="search-input"
+									type="text"
+									placeholder="Buscar..."
+									value={searchQuery}
+									onChange={(e) => setSearchQuery(e.target.value)}
+									className="w-full bg-white/5 border border-white/10 rounded-full px-4 py-1.5 text-[11px] font-bold text-white placeholder:text-white/20 focus:outline-none focus:border-primary/50 transition-colors"
+								/>
+							</motion.form>
+						)}
+					</AnimatePresence>
+					<button 
+						onClick={() => setIsSearchOpen(!isSearchOpen)}
+						className="text-white/70 hover:text-white transition-colors p-2"
+					>
+						<Search size={18} strokeWidth={2.5} />
+					</button>
+				</div>
 				
 				{userData ? (
 					<div 

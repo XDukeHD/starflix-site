@@ -62,6 +62,22 @@ export const api = {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             return res.json();
+        },
+        search: async (query: string) => {
+            const token = getAuthToken();
+            const res = await fetch(`${API_URL}/search?query=${query}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            return res.json();
+        }
+    },
+    genres: {
+        list: async (genre: string, page: number = 1) => {
+            const token = getAuthToken();
+            const res = await fetch(`${API_URL}/genres/${genre}?page=${page}&limit=25`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            return res.json();
         }
     },
     stream: {
@@ -74,6 +90,34 @@ export const api = {
         },
         getPlaylistUrl: (uuid: string) => {
             return `${API_URL}/stream/${uuid}`;
+        }
+    },
+    watchlist: {
+        list: async () => {
+            const token = getAuthToken();
+            const res = await fetch(`${API_URL}/watchlist`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            return res.json();
+        },
+        toggle: async (contentId: string) => {
+            const token = getAuthToken();
+            const res = await fetch(`${API_URL}/watchlist/toggle`, {
+                method: 'POST',
+                headers: { 
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ content_id: contentId })
+            });
+            return res.json();
+        },
+        check: async (contentId: string) => {
+            const token = getAuthToken();
+            const res = await fetch(`${API_URL}/watchlist/check?content_id=${contentId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            return res.json();
         }
     }
 };
