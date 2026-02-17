@@ -47,7 +47,6 @@ export default function LoginPage() {
 			document.cookie = `token=${data.session.token}; expires=${expires}; path=/`;
 			document.cookie = `session_id=${data.session.cookie}; expires=${expires}; path=/`;
 
-			// Notificar componentes sobre a mudança na autenticação
 			window.dispatchEvent(new Event('auth-change'));
 
 			router.push('/');

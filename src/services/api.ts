@@ -62,14 +62,11 @@ export const api = {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             return res.json();
-        },
-        search: async (query: string) => {
-            const token = getAuthToken();
-            const res = await fetch(`${API_URL}/search?query=${query}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            return res.json();
         }
+    },
+    search: async (q: string, page: number = 1) => {
+        const res = await fetch(`${API_URL}/search?q=${q}&page=${page}&limit=60`);
+        return res.json();
     },
     genres: {
         list: async (genre: string, page: number = 1) => {
